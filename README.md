@@ -6,8 +6,8 @@ The logo and 34 unique image assets were extracted from publicly accessible Inst
 
 Serve dist with any static host. Each route has its own index.html, with shared app.js and style.css. No dependency installation or build required. Scroll motion is driven by viewport position and repeats in either direction; content stays visible, with a reduced-motion override. The image archive is available on the Gallery page.
 
-## Hosting from GitHub
+## Deploy on Vercel
 
-Use the `dist` directory as the static output directory. On Vercel select Framework Preset: Other, leave the build command empty, and use Output Directory: dist. The included vercel.json sets the output directory. No dependencies or build step are required.
+Import this repository with Framework Preset **Other**, Root Directory **./**, and Output Directory **dist**. No build command or dependency installation is needed. The included vercel.json supplies these settings.
 
-The latest version includes a three-second branded loading screen and gentler frame-rate-independent scroll motion.
+No playable videos are included; the gallery contains photographs and reel cover images.
