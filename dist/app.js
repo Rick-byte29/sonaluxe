@@ -64,3 +64,59 @@ reduced.addEventListener('change',animate);
 document.querySelectorAll('img').forEach(img=>img.addEventListener('load',scheduleMeasure,{once:true}));
 if(document.fonts)document.fonts.ready.then(scheduleMeasure);
 measureMotion();
+
+// A gentle gold follower for mouse input; touch and reduced motion stay native.
+const mouseMotion = matchMedia('(hover: hover) and (pointer: fine)');
+const cursor = document.createElement('div');
+cursor.className = 'cursor-halo';
+cursor.setAttribute('aria-hidden', 'true');
+document.body.append(cursor);
+let cursorX = 0, cursorY = 0, targetX = 0, targetY = 0;
+let cursorFrame = 0, cursorTime = 0, cursorVisible = false;
+function hideCursor() {
+  cursorVisible = false;
+  cursor.classList.remove('visible', 'over-control', 'pressed');
+  cancelAnimationFrame(cursorFrame);
+  cursorFrame = 0;
+  cursorTime = 0;
+}
+function followCursor(time) {
+  cursorFrame = 0;
+  if (!cursorVisible || !mouseMotion.matches || reduced.matches) return;
+  const delta = cursorTime ? Math.min(time - cursorTime, 64) : 16.67;
+  cursorTime = time;
+  const amount = 1 - Math.exp(-delta / 85);
+  cursorX += (targetX - cursorX) * amount;
+  cursorY += (targetY - cursorY) * amount;
+  cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+  if (Math.abs(targetX - cursorX) + Math.abs(targetY - cursorY) > .1) {
+    cursorFrame = requestAnimationFrame(followCursor);
+  } else {
+    cursorTime = 0;
+  }
+}
+document.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || !mouseMotion.matches || reduced.matches || document.documentElement.classList.contains('is-loading')) {
+    hideCursor();
+    return;
+  }
+  targetX = event.clientX;
+  targetY = event.clientY;
+  if (!cursorVisible) {
+    cursorX = targetX;
+    cursorY = targetY;
+    cursorVisible = true;
+    cursor.classList.add('visible');
+  }
+  cursor.classList.toggle('over-control', !!event.target.closest('a, button, summary, input, select, textarea'));
+  if (!cursorFrame) cursorFrame = requestAnimationFrame(followCursor);
+}, {passive: true});
+document.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'mouse' && cursorVisible) cursor.classList.add('pressed');
+});
+document.addEventListener('pointerup', () => cursor.classList.remove('pressed'));
+document.documentElement.addEventListener('pointerleave', hideCursor);
+window.addEventListener('blur', hideCursor);
+document.addEventListener('visibilitychange', () => { if (document.hidden) hideCursor(); });
+mouseMotion.addEventListener('change', hideCursor);
+reduced.addEventListener('change', hideCursor);
